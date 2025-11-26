@@ -1,0 +1,10 @@
+numpy
+pandas
+yfinance
+scikit-learn
+tensorflow==2.13.0
+statsmodels
+shap==0.42.1
+matplotlib
+seaborn
+jupyter
