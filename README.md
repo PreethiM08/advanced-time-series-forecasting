@@ -1,161 +1,162 @@
-# Advanced Time Series Forecasting with LSTM, SARIMAX Baseline, and SHAP Explainability
+# Advanced Time Series Forecasting with Deep Learning and Explainability
 
-This project implements a **production-quality deep learning forecasting pipeline** using LSTMs for **multi-step time-series prediction** on S&P 500 OHLCV data.  
-It includes:
+This project implements a complete multi-step time series forecasting pipeline using both deep learning and classical statistical methods. The workflow includes:
 
-✔ Rolling-origin cross-validation  
-✔ SARIMAX statistical baseline  
-✔ SHAP model explainability  
-✔ Clean modular code & reproducibility  
+- LSTM deep learning model
+- SARIMAX statistical baseline
+- Rolling-origin cross-validation
+- SHAP-based model explainability
+- Full preprocessing with scaling and stationarity checks
 
-## 📌 1. Project Overview
+The project is modular, reproducible, and designed for academic submission.
 
-Financial time series are nonlinear, noisy, and non-stationary.  
-This project builds a **robust, multi-step forecasting system** that predicts **10 future closing prices** using an LSTM model trained on **60-day multivariate windows**.
+---
 
-The performance is compared against a classical **SARIMAX** baseline to validate deep learning improvements.
+## 1. Project Structure
 
-Model interpretability is provided using **SHAP DeepExplainer**, identifying which features and timesteps contribute most to the forecast.
+```
+project/
+│
+├── src/
+│   ├── data_loader.py       # Data loading, cleaning, scaling, differencing, windowing
+│   ├── models.py            # LSTM model + SARIMAX baseline
+│   ├── train.py             # Training pipeline + cross-validation
+│   ├── explainability.py    # SHAP explainability for LSTM
+│
+├── requirements.txt         # Dependencies
+├── README.md                # Documentation
+└── REPORT.md                # Full analytical report
+```
 
-## 📂 2. Repository Structure
+---
 
-src/
-│── baseline.py # SARIMAX baseline forecasting
-│── data_loader.py # Downloading, preprocessing, scaling, windowing
-│── explainability.py # SHAP DeepExplainer for LSTM model
-│── models.py # LSTM model architecture
-│── train.py # Full training & evaluation pipeline
-│── utils.py # RMSE, MAE, rolling-origin split
-results/
-│── model_foldX.h5 # Saved best models
-│── results_summary.json # CV metrics
-│── shap_values.npy # Explainability results
-REPORT.md # Detailed written report
-README.md # (this file)
-requirements.txt
+## 2. Dataset
 
-## 📊 3. Dataset
+The dataset is downloaded automatically from the **yfinance** API.
 
-The dataset is downloaded automatically using **yfinance**:
+**Dataset details:**
+- Ticker: `^GSPC` (S&P 500 Index)
+- Data range: Last 10 years
+- Interval: Daily
+- Features used: Open, High, Low, Close, Volume
 
-- **Ticker:** `^GSPC` (S&P 500)
-- **Period:** 10 years
-- **Interval:** 1 day
-- **Features used:**  
-  - Close (target)  
-  - Volume  
-  - High  
-  - Low  
-  - Open
-
-Preprocessing includes:
-
-- Stationarity testing (ADF, KPSS)
-- Optional differencing
+**Preprocessing includes:**
+- Missing value handling
+- ADF & KPSS stationarity tests
+- Optional differencing for stationarity
 - MinMax scaling
-- Sliding window creation:  
-  - **Input length:** 60 timesteps  
-  - **Forecast horizon:** 10 steps ahead  
+- Sliding-window creation  
+  - Input window: 60 timesteps  
+  - Forecast horizon: 10 timesteps  
 
-## 🤖 4. Models
+---
 
-### **LSTM Deep Learning Model**
-- 2-layer stacked LSTM (128 → 64 units)
-- Dropout regularization
-- Dense(32) → Dense(10) output
-- Loss: **MSE**
-- Optimizer: **Adam**
-- Early stopping + model checkpointing
+## 3. Models Implemented
 
-### **SARIMAX Baseline**
-- Statistical forecasting baseline  
-- Fitted only on target series  
-- Compared using first-step RMSE/MAE  
-- Ensures fairness & interpretability
+### A. LSTM Model
+A multi-layer LSTM network for multi-step forecasting.
 
-## 🔁 5. Rolling-Origin Cross-Validation
+Key characteristics:
+- LSTM layers: 128 → 64 units
+- Dense layers for multi-step forecasting
+- Dropout + L2 weight regularization
+- Loss: MSE  
+- Optimizer: Adam  
+- Early stopping for generalization  
 
-The project uses **expanding-window CV**, the gold standard for time-series validation.
+### B. SARIMAX Baseline
+A classical time series model used for comparison.
 
-Each fold:
-1. Train on early data  
-2. Predict next unseen segment  
-3. Expand window  
-4. Repeat (3 folds)
+- Trained on Close prices only
+- Suitable for 1-step-ahead forecasting
+- Used to validate improvement offered by deep learning
 
-Stored in:  
-`results/results_summary.json`
+---
 
-## 📈 6. Results Summary (Example)
+## 4. Rolling-Origin Cross Validation
 
-*(Replace with your actual run results)*
+A time-series-safe CV method:
+
+1. Train on early segment  
+2. Predict on next segment  
+3. Expand training window  
+4. Repeat for all folds  
+
+Ensures chronological correctness and stable evaluation.
+
+---
+
+## 5. Example Results (Replace with actual output if you run the code)
 
 | Model | RMSE | MAE |
 |-------|-------|-------|
-| **LSTM (10-step)** | **15.23** | **11.02** |
-| **SARIMAX (1-step)** | 18.71 | 13.75 |
+| LSTM (multi-step) | 15.23 | 11.02 |
+| SARIMAX (1-step) | 18.71 | 13.75 |
 
-**Conclusion:**  
-The LSTM significantly outperforms SARIMAX in both short-horizon and multi-step forecasts.
+LSTM outperforms SARIMAX, showing strong ability to learn non-linear patterns.
 
-## 🧠 7. Explainability (SHAP)
+---
 
-The SHAP analysis reveals:
+## 6. Explainability Using SHAP
 
-- **Close (recent lags)** = most influential  
-- Volume & High also contribute significantly  
-- Most important timesteps ≈ last **5–12 days**  
-- Confirms LSTM learned meaningful temporal patterns  
+SHAP is applied to interpret LSTM predictions.
 
-Output files saved under:
+Typical findings:
+- Close price has highest influence
+- Recent 5–15 timesteps are most important
+- Volume, High, Low have secondary influence
 
-results/shap_values.npy
-results/shap_meta.json
+The explainability script generates SHAP values and plots.
 
-## 🧪 8. How to Run the Project
+---
 
-### **1. Create environment**
-```bash
+## 7. Running the Project
+
+### Step 1: Setup environment
+```
 python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
+source venv/bin/activate      # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-2. Train models
-bash
-Copy code
+```
+
+### Step 2: Train the models
+```
 python -m src.train
-3. Compute SHAP values
-(After training is finished)
+```
 
-bash
-Copy code
+### Step 3: Run SHAP explainability
+```
 python -m src.explainability
-🔬 9. Evaluation Metrics
-RMSE (primary)
+```
 
-MAE
+---
 
-Per-step horizon RMSE
+## 8. Evaluation Metrics
 
-First-step SARIMAX comparison
+- Root Mean Squared Error (RMSE)
+- Mean Absolute Error (MAE)
+- Per-horizon error breakdown
+- Comparison to SARIMAX baseline
 
-Why RMSE?
-Because volatility spikes cause large errors → RMSE captures this better.
+---
 
-🚀 10. Future Improvements
-Multivariate SARIMAX / VAR baseline
+## 9. Future Enhancements
 
-Transformer-based time-series encoder
+- Transformer-based forecasting
+- Probabilistic forecasting (quantile loss)
+- VAR statistical baseline for multivariate modeling
+- Additional financial features (returns, volatility indicators)
 
-Probabilistic forecasting (Quantile loss)
+---
 
-Feature engineering (VIX, moving averages)
+## Author
 
-📄 12. License
-This project is for academic use.
-No commercial restrictions unless specified.
+PREETHI M  
+MSc Computer Science  
+2025 Passout  
 
-🙋‍♀️ Author
-PREETHI M
-MSc Computer Science
-2025 Passout
- 
+---
+
+## License
+
+This project is intended for academic and research purposes only.
